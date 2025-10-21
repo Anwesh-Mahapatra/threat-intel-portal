@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Latest</h2>
+{% for it in items %}
+  <div class="card">
+    <div style="font-size:16px; font-weight:600;">
+      <a href="{{ it.canonical_url }}" target="_blank" rel="noopener">{{ it.title or '(no title)' }}</a>
+    </div>
+    <div class="muted">{{ it.source }} · {{ it.published_at or '' }}</div>
+    {% if it.summary_short %}
+      <div style="margin-top:8px;">{{ it.summary_short }}</div>
+    {% endif %}
+  </div>
+{% else %}
+  <div class="muted">No items yet. Click “Fetch Now”.</div>
+{% endfor %}
+{% endblock %}

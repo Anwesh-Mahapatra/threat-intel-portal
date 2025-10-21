@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+
+# Envs / secrets
+.env
+*.env
+.env.* 
+
+# Editors
+.vscode/
+.idea/
+*.code-workspace
+
+# OS junk
+.DS_Store
+Thumbs.db

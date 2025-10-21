@@ -1,0 +1,44 @@
+version: "3.9"
+services:
+  api:
+    build: ./api
+    env_file: .env
+    depends_on:
+      - db
+      - redis
+      - search
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api:/app
+  worker:
+    build: ./api
+    env_file: .env
+    command: celery -A app.workers.celery_app worker -l info
+    depends_on:
+      - api
+      - redis
+      - db
+  beat:
+    build: ./api
+    env_file: .env
+    command: celery -A app.workers.celery_app beat -l info
+    depends_on:
+      - worker
+      - redis
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pg:/var/lib/postgresql/data
+  redis:
+    image: redis:7
+  search:
+    image: getmeili/meilisearch:v1.8
+    environment:
+      MEILI_NO_ANALYTICS: "true"
+volumes:
+  pg: {}
