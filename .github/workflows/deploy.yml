@@ -13,14 +13,18 @@ jobs:
         with:
           fetch-depth: 1
 
-      - name: Sync code to /srv/threat-intel-portal (keep .env)
+      - name: Sync code to /srv/threat-intel-portal (preserve .env)
         run: |
           rsync -a --delete \
             --exclude '.git' \
             --exclude '.venv' \
             --exclude '.env' \
-            --exclude 'actions-runner/' \
             "$GITHUB_WORKSPACE"/ /srv/threat-intel-portal/
+
+      - name: Verify deploy script exists
+        run: |
+          ls -la /srv/threat-intel-portal/scripts
+          test -f /srv/threat-intel-portal/scripts/deploy.sh
 
       - name: Deploy
         run: |
