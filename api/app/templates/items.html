@@ -10,6 +10,9 @@
     {% if it.summary_short %}
       <div style="margin-top:8px;">{{ it.summary_short }}</div>
     {% endif %}
+    <div style="margin-top:10px;" class="row">
+      <a class="badge" href="/items/{{ it.id }}">View details</a>
+    </div>
   </div>
 {% else %}
   <div class="muted">No results.</div>

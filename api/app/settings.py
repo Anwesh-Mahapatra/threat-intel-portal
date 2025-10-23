@@ -17,4 +17,7 @@ class Settings(BaseSettings):
 
     OTX_API_KEY: str | None = None
 
+    THREATFOX_API_KEY: str | None = None
+    THREATFOX_AUTH_KEY: str | None = None
+
 settings = Settings()

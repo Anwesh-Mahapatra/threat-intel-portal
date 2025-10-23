@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid">
+  <div class="col-8">
+    <div class="card">
+      <div style="font-size:20px; font-weight:700; margin-bottom:6px;">
+        <a href="{{ item.canonical_url }}" target="_blank" rel="noopener">{{ item.title or '(no title)' }}</a>
+      </div>
+      <div class="subtle">{{ source_name }} · {{ item.published_at or '' }}</div>
+      {% if item.text %}
+      <div style="margin-top:12px; white-space:pre-wrap; color:#d1d5db;">{{ item.text }}</div>
+      {% endif %}
+      <div style="margin-top:12px;" class="row">
+        <a class="badge" href="/">Back</a>
+        <a class="badge" href="{{ item.canonical_url }}" target="_blank">Open Source</a>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="row" style="margin-bottom:10px;">
+        <div style="font-weight:700;">IOCs ({{ iocs|length }})</div>
+        <div class="spacer"></div>
+        <input type="text" id="iocFilter" placeholder="Filter IOCs by type/value/malware/tag"/>
+      </div>
+      <div class="table-wrap">
+        <table id="iocTable">
+          <thead>
+            <tr>
+              <th>Type</th>
+              <th>Value</th>
+              <th>Malware</th>
+              <th>Threat</th>
+              <th>Confidence</th>
+              <th>First Seen</th>
+              <th>Last Seen</th>
+              <th>Tags</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for i in iocs %}
+            {% set ctx = i.context or {} %}
+            <tr>
+              <td><span class="badge">{{ i.type }}</span></td>
+              <td>
+                <span style="cursor:pointer" onclick="copyVal('{{ i.value|e }}', this)" title="Copy">{{ i.value }}</span>
+              </td>
+              <td>{{ ctx.malware_printable or ctx.malware or '' }}</td>
+              <td>{{ ctx.threat_type or '' }}</td>
+              <td>{{ ctx.confidence or '' }}</td>
+              <td>{{ ctx.first_seen or '' }}</td>
+              <td>{{ ctx.last_seen or '' }}</td>
+              <td>
+                {% if ctx.tags %}
+                  {% for t in ctx.tags %}
+                    <span class="chip">{{ t }}</span>
+                  {% endfor %}
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-4">
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:6px;">Quick Stats</div>
+      <div class="row" style="gap:8px; flex-wrap:wrap;">
+        {% set types = {} %}
+        {% for i in iocs %}
+          {% set _ = types.update({ i.type: (types.get(i.type, 0) + 1) }) %}
+        {% endfor %}
+        {% for k,v in types.items() %}
+          <span class="badge">{{ k }} • {{ v }}</span>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="card">
+      <div style="font-weight:700; margin-bottom:6px;">Tips</div>
+      <div class="muted">Click any IOC value to copy.</div>
+      <div class="muted">Use the filter to narrow by type/value/malware/tag.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const filter = document.getElementById('iocFilter');
+  const table = document.getElementById('iocTable');
+  if (filter && table) {
+    filter.addEventListener('input', () => {
+      const q = filter.value.toLowerCase();
+      for (const tr of table.tBodies[0].rows) {
+        const text = tr.innerText.toLowerCase();
+        tr.style.display = text.includes(q) ? '' : 'none';
+      }
+    });
+  }
+  function copyVal(val, el){
+    navigator.clipboard.writeText(val).then(()=>{
+      const old = el.innerText; el.innerText = 'Copied!'; setTimeout(()=>{ el.innerText = old; }, 700);
+    });
+  }
+</script>
+{% endblock %}
+

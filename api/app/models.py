@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, BigInteger, Text, Boolean, ForeignKey, TIMESTAMP, JSON, LargeBinary
+from sqlalchemy import Column, Integer, BigInteger, Text, Boolean, ForeignKey, TIMESTAMP, JSON, LargeBinary, UniqueConstraint
 from sqlalchemy.orm import relationship
 from .db import Base
 
@@ -55,6 +55,9 @@ class ItemTechnique(Base):
 
 class IOC(Base):
     __tablename__ = "iocs"
+    __table_args__ = (
+        UniqueConstraint('type', 'value', name='iocs_type_value_unique'),
+    )
     id = Column(BigInteger, primary_key=True)
     item_id = Column(BigInteger, ForeignKey("items.id"))
     type = Column(Text)  # ip/domain/url/sha256/sha1/md5/email

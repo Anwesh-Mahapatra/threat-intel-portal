@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, Query
+from fastapi import FastAPI, Depends, Query, HTTPException
 from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from datetime import datetime
@@ -7,6 +7,8 @@ from .search import search_items
 from .templates import render
 from .workers import schedule_now  # for manual triggers
 from . import workers
+from sqlalchemy import select
+from .models import Item, Source, IOC
 
 app = FastAPI(title="Threat Intel Portal")
 
@@ -30,6 +32,21 @@ def home(db: Session = Depends(get_db)):
 def list_items(db: Session = Depends(get_db), q: str | None = Query(None)):
     items, _ = search_items(db, q=q, limit=100)
     return render("items.html", {"items": items, "q": q})
+
+@app.get("/items/{item_id}", response_class=HTMLResponse)
+def item_detail(item_id: int, db: Session = Depends(get_db)):
+    row = db.execute(
+        select(Item, Source.name).join(Source, Item.source_id == Source.id).where(Item.id == item_id)
+    ).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Item not found")
+    item, source_name = row
+    iocs = db.execute(select(IOC).where(IOC.item_id == item.id)).scalars().all()
+    return render("item_detail.html", {
+        "item": item,
+        "source_name": source_name,
+        "iocs": iocs,
+    })
 
 @app.post("/admin/refresh")
 def admin_refresh():
