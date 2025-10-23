@@ -1,5 +1,4 @@
 name: Deploy to Ubuntu VM
-
 on:
   push:
     branches: [ main ]
@@ -7,17 +6,22 @@ on:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, ti-server]   # matches the label we set
+    runs-on: [self-hosted, ti-server]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
-      - name: Sync code to /srv/threat-intel-portal
+      - name: Sync code to /srv/threat-intel-portal (keep .env)
         run: |
-          rsync -a --delete --exclude '.git' --exclude '.venv' "$GITHUB_WORKSPACE"/ /srv/threat-intel-portal/
+          rsync -a --delete \
+            --exclude '.git' \
+            --exclude '.venv' \
+            --exclude '.env' \
+            --exclude 'actions-runner/' \
+            "$GITHUB_WORKSPACE"/ /srv/threat-intel-portal/
 
-      - name: Deploy script (venv + pip + seed + restart)
+      - name: Deploy
         run: |
           bash /srv/threat-intel-portal/scripts/deploy.sh
