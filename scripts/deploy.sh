@@ -4,10 +4,10 @@ set -x
 
 APP_DIR=/srv/threat-intel-portal
 
-# 0) .env must exist on the server (kept out of git)
+# .env must live on the server
 test -f "$APP_DIR/.env"
 
-# 1) venv + deps
+# venv + deps
 cd "$APP_DIR"
 python3 -m venv .venv || true
 source .venv/bin/activate
@@ -15,10 +15,15 @@ python -m pip install --upgrade pip
 pip install -r api/requirements.txt
 pip install jinja2==3.1.4
 
-# 2) seed with CWD at repo root so pydantic reads .env here
-PYTHONPATH=api python -m app.seed || true
+# export .env so SQLAlchemy gets localhost, not "db"
+set -a
+. "$APP_DIR/.env"
+set +a
 
-# 3) restart services with EXACT unit names (matches sudoers)
+# run seed from repo root with PYTHONPATH set
+PYTHONPATH=api python -m app.seed   # (no '|| true' here)
+
+# restart services (exact unit names match sudoers)
 sudo /usr/bin/systemctl daemon-reload
 sudo /usr/bin/systemctl restart ti-api.service
 sudo /usr/bin/systemctl restart ti-worker.service
